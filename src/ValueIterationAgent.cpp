@@ -16,33 +16,36 @@ ValueIterationAgent::ValueIterationAgent(FrozenLakeMDP const &mdp, double gamma,
 
 double ValueIterationAgent::getValue(const GameState &state)
 {
-    // TODO
-    return 0.0;
+    // TODO testing
+    return (*valueMap.find(state)).second;
 }
 
 double ValueIterationAgent::getQValue(const GameState &state, const Action &action)
 {
-    // TODO
-    return 0.0;
+    // TODO testing
+    return (*qValueMap.find(std::make_pair(state, action))).second;
 }
 
 Action ValueIterationAgent::getPolicy(const GameState &state)
 {
-    // TODO
-    return LEFT;
+    // TODO testing & generate policy map structure
+    return (*policyMap.find(state)).second;
 }
 
 void ValueIterationAgent::solve()
 {
     // TODO. Implement Value Iteration here
     double delta = 0;
+    int iteration = 0;
 
-    while (!(delta < m_threshold))
+    while (!(delta < m_threshold) && iteration <= m_iterations)
     {
-        delta = 0; // reset delta value to 0
+        delta = 0;   // reset delta value to 0
+        iteration++; // increment iteration
 
         std::set<GameState> possStates = m_mdp.getStates(); // get all possible states to iterate through
         std::set<GameState>::iterator state_iterator = possStates.begin();
+
         while (state_iterator != possStates.end())
         {
             // for each possible state in environment
@@ -51,6 +54,8 @@ void ValueIterationAgent::solve()
             double v = -1;
 
             std::vector<Action> possActions = m_mdp.getPossibleActions(curr_state); // get all possible actions
+            Action optimalAction;
+            double maxActionValue = -1;
 
             for (Action action : possActions)
             {
@@ -58,7 +63,7 @@ void ValueIterationAgent::solve()
                 std::map<GameState, double> transitionProbs = m_mdp.getTransitionStatesAndProbs(curr_state, action);
                 std::map<GameState, double>::iterator transition_iterator = transitionProbs.begin();
 
-                double sum = 0;
+                double sum = 0; // sum for current action
 
                 while (transition_iterator != transitionProbs.end())
                 {
@@ -69,9 +74,22 @@ void ValueIterationAgent::solve()
 
                     transition_iterator++; // iterate to next possible transition state
                 }
+
+                // insert q value into map
+                qValueMap.insert(std::make_pair(std::make_pair(curr_state, action), sum));
+
+                // pick optimal action based on current max value
+                if (sum > maxActionValue)
+                {
+                    maxActionValue = sum;
+                    optimalAction = action;
+                }
+
                 // v value is larger of current sum (for current action) or current v value
                 v = std::max(sum, v);
             }
+
+            policyMap.insert(std::make_pair(curr_state, optimalAction));
 
             (*valueMap.find(curr_state)).second = v; // set value for V[s] to newly calculated v value
 

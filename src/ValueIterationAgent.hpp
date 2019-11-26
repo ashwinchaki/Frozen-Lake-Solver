@@ -41,6 +41,8 @@ private:
     std::map<GameState, Action> policyMap; // π[] --> maps a state to an action to take
 
     std::map<GameState, double> valueMap; // V[s] --> maps a state to the total reward
+
+    std::map<std::pair<GameState, Action>, double> qValueMap; // Q[s, a] --> maps state and action to q-value
 };
 
 #endif //FROZEN_LAKE_VALUEITERATIONAGENT_HPP
