@@ -29,18 +29,17 @@ double ValueIterationAgent::getQValue(const GameState &state, const Action &acti
 Action ValueIterationAgent::getPolicy(const GameState &state)
 {
     // TODO testing & generate policy map structure
-    return (*policyMap.find(state)).second;
+    std::map<GameState, Action>::iterator it = policyMap.find(state);
+    return (*it).second;
 }
 
 void ValueIterationAgent::solve()
 {
     // TODO. Implement Value Iteration here
-    double delta = 0;
+    double delta = INT_MAX;
     int iteration = 0;
-
-    while (!(delta < m_threshold) && iteration <= m_iterations)
+    while ((delta > m_threshold) && iteration <= m_iterations)
     {
-        delta = 0;   // reset delta value to 0
         iteration++; // increment iteration
 
         std::set<GameState> possStates = m_mdp.getStates(); // get all possible states to iterate through
@@ -51,11 +50,16 @@ void ValueIterationAgent::solve()
             // for each possible state in environment
             GameState curr_state = *state_iterator;
             double temp = (*valueMap.find(curr_state)).second;
-            double v = -1;
+            double v = INT_MIN;
 
             std::vector<Action> possActions = m_mdp.getPossibleActions(curr_state); // get all possible actions
-            Action optimalAction;
-            double maxActionValue = -1;
+            if (possActions.size() == 0)
+            {
+                state_iterator++;
+                continue;
+            }
+            Action optimalAction = LEFT;
+            double maxActionValue = qValueMap[std::make_pair(curr_state, optimalAction)];
 
             for (Action action : possActions)
             {
@@ -70,13 +74,14 @@ void ValueIterationAgent::solve()
                     // for each possible transition state (w/ probability)
                     std::pair<GameState, double> transition_pair = *transition_iterator;
                     // val = prob(s' | s, a) * [R(s, a, s') + γ(v[s'])]
-                    sum += transition_pair.second * (m_mdp.getReward(curr_state, action, transition_pair.first) + (m_gamma * (*valueMap.find(transition_pair.first)).second));
+                    sum += transition_pair.second * (m_mdp.getReward(curr_state, action, transition_pair.first) + (m_gamma * valueMap[transition_pair.first]));
 
                     transition_iterator++; // iterate to next possible transition state
                 }
 
                 // insert q value into map
-                qValueMap.insert(std::make_pair(std::make_pair(curr_state, action), sum));
+                // qValueMap.insert(std::make_pair(std::make_pair(curr_state, action), sum));
+                qValueMap[std::make_pair(curr_state, action)] = sum;
 
                 // pick optimal action based on current max value
                 if (sum > maxActionValue)
@@ -88,14 +93,15 @@ void ValueIterationAgent::solve()
                 // v value is larger of current sum (for current action) or current v value
                 v = std::max(sum, v);
             }
+            policyMap[curr_state] = optimalAction;
 
-            policyMap.insert(std::make_pair(curr_state, optimalAction));
+            // valueMap[curr_state] = v; // set value for V[s] to newly calculated v value
+            valueMap[curr_state] = maxActionValue;
 
-            (*valueMap.find(curr_state)).second = v; // set value for V[s] to newly calculated v value
+            // delta = std::max(delta, std::abs(temp - v));
+            delta = std::max(delta, std::abs(temp - maxActionValue));
 
-            delta = std::max(delta, std::abs(temp - v));
-
-            state_iterator++; // iterate to next state in environment
+            ++state_iterator; // iterate to next state in environment
         }
     }
 }
@@ -112,6 +118,6 @@ void ValueIterationAgent::initialize()
         // for all possible states, initialize value(S) to 0
         GameState state = *it;
         valueMap.insert(std::pair<GameState, double>(state, 0));
-        it++;
+        ++it;
     }
 }
