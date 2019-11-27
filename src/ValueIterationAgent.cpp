@@ -49,7 +49,7 @@ void ValueIterationAgent::solve()
         {
             // for each possible state in environment
             GameState curr_state = *state_iterator;
-            double temp = (*valueMap.find(curr_state)).second;
+            double temp = valueMap[curr_state];
             double v = INT_MIN;
 
             std::vector<Action> possActions = m_mdp.getPossibleActions(curr_state); // get all possible actions
@@ -96,10 +96,10 @@ void ValueIterationAgent::solve()
             policyMap[curr_state] = optimalAction;
 
             // valueMap[curr_state] = v; // set value for V[s] to newly calculated v value
-            valueMap[curr_state] = maxActionValue;
+            valueMap[curr_state] = v;
 
             // delta = std::max(delta, std::abs(temp - v));
-            delta = std::max(delta, std::abs(temp - maxActionValue));
+            delta = std::min(delta, std::abs(temp - v));
 
             ++state_iterator; // iterate to next state in environment
         }

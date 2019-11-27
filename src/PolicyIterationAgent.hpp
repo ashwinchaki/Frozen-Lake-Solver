@@ -8,7 +8,8 @@
 #include "LearningAgent.hpp"
 #include "FrozenLake.hpp"
 
-class PolicyIterationAgent : public ValueEstimateAgent {
+class PolicyIterationAgent : public ValueEstimateAgent
+{
 public:
     PolicyIterationAgent(const FrozenLakeMDP &mdp, double gamma, int iterations, double threshold);
 
@@ -18,10 +19,10 @@ public:
 
     Action getPolicy(const GameState &state) override;
 
-    std::string getName() const override {
+    std::string getName() const override
+    {
         return "PolicyIterationAgent";
     }
-
 
 protected:
     /*
@@ -34,11 +35,13 @@ private:
     const FrozenLakeMDP &m_mdp;
     std::map<GameState, Action> m_policy;
 
+    std::map<GameState, double> valueMap; // V[s] --> maps a state to the total reward
+
+    std::map<std::pair<GameState, Action>, double> qValueMap; // Q[s, a] --> maps state and action to q-value
+
     void initialize() override;
 
     void solve();
-
 };
-
 
 #endif //FROZEN_LAKE_POLICYITERATIONAGENT_HPP
