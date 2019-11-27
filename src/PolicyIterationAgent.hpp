@@ -35,9 +35,7 @@ private:
     const FrozenLakeMDP &m_mdp;
     std::map<GameState, Action> m_policy;
 
-    std::map<GameState, double> valueMap; // V[s] --> maps a state to the total reward
-
-    std::map<std::pair<GameState, Action>, double> qValueMap; // Q[s, a] --> maps state and action to q-value
+    std::map<GameState, double> initializeV();
 
     void initialize() override;
 

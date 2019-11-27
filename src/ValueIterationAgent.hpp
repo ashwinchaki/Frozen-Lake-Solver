@@ -31,13 +31,6 @@ private:
 
     const FrozenLakeMDP &m_mdp;
 
-    /**
-     * TODO: define data structures for:
-     *      π[] = map of states to actions? (hashmap)
-     *      V[s] = map of states to values? (hashmap)
-     *      --> V_k[S] = vector<HashMap<state, double>>
-     */
-
     std::map<GameState, Action> policyMap; // π[] --> maps a state to an action to take
 
     std::map<GameState, double> valueMap; // V[s] --> maps a state to the total reward

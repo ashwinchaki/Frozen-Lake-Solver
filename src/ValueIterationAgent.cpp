@@ -16,26 +16,21 @@ ValueIterationAgent::ValueIterationAgent(FrozenLakeMDP const &mdp, double gamma,
 
 double ValueIterationAgent::getValue(const GameState &state)
 {
-    // TODO testing
-    return (*valueMap.find(state)).second;
+    return valueMap[state];
 }
 
 double ValueIterationAgent::getQValue(const GameState &state, const Action &action)
 {
-    // TODO testing
-    return (*qValueMap.find(std::make_pair(state, action))).second;
+    return qValueMap[std::make_pair(state, action)];
 }
 
 Action ValueIterationAgent::getPolicy(const GameState &state)
 {
-    // TODO testing & generate policy map structure
-    std::map<GameState, Action>::iterator it = policyMap.find(state);
-    return (*it).second;
+    return policyMap[state];
 }
 
 void ValueIterationAgent::solve()
 {
-    // TODO. Implement Value Iteration here
     double delta = INT_MAX;
     int iteration = 0;
     while ((delta > m_threshold) && iteration <= m_iterations)
@@ -80,7 +75,6 @@ void ValueIterationAgent::solve()
                 }
 
                 // insert q value into map
-                // qValueMap.insert(std::make_pair(std::make_pair(curr_state, action), sum));
                 qValueMap[std::make_pair(curr_state, action)] = sum;
 
                 // pick optimal action based on current max value
@@ -95,11 +89,9 @@ void ValueIterationAgent::solve()
             }
             policyMap[curr_state] = optimalAction;
 
-            // valueMap[curr_state] = v; // set value for V[s] to newly calculated v value
-            valueMap[curr_state] = v;
+            valueMap[curr_state] = maxActionValue;
 
-            // delta = std::max(delta, std::abs(temp - v));
-            delta = std::min(delta, std::abs(temp - v));
+            delta = std::max(delta, std::abs(temp - maxActionValue));
 
             ++state_iterator; // iterate to next state in environment
         }
@@ -117,7 +109,7 @@ void ValueIterationAgent::initialize()
     {
         // for all possible states, initialize value(S) to 0
         GameState state = *it;
-        valueMap.insert(std::pair<GameState, double>(state, 0));
+        valueMap[state] = 0;
         ++it;
     }
 }
