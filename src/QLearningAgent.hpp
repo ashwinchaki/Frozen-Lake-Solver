@@ -8,7 +8,8 @@
 #include "LearningAgent.hpp"
 #include <random>
 
-class QLearningAgent : public ValueEstimateAgent {
+class QLearningAgent : public ValueEstimateAgent
+{
 public:
     QLearningAgent(FrozenLakeEnv &env, double gamma, int iterations, double alpha, double epsilon);
 
@@ -20,7 +21,8 @@ public:
 
     Action getAction(const GameState &state) override;
 
-    std::string getName() const override {
+    std::string getName() const override
+    {
         return "QLearningAgent";
     }
 
@@ -32,6 +34,11 @@ private:
 
     double m_alpha;
     double m_epsilon;
+
+    std::map<std::pair<GameState, Action>, double> m_qvalue;
+
+    std::map<GameState, Action> m_policy;
+
     FrozenLakeEnv &m_env;
 
     void update(const GameState &state, const Action &action, const GameState &nextState, double reward);
@@ -40,6 +47,5 @@ private:
 
     void initialize() override;
 };
-
 
 #endif //FROZEN_LAKE_QLEARNINGAGENT_HPP
