@@ -191,7 +191,7 @@ void QLearningAgent::solve()
                 break; // avoid infinite loop in some cases.
         }
         // evaluate for 100 episodes using the current optimal policy. You can't change this line.
-        double episodeReward = m_env.runGame(*this, 1000, m_gamma, false).first;
+        double episodeReward = m_env.runGame(*this, 100, m_gamma, false).first;
         std::cout << "Evaluating episode reward at learning iteration " << i << " is " << episodeReward << std::endl;
         outFile << i << "," << episodeReward << std::endl;
     }
