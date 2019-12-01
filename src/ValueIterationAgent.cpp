@@ -32,9 +32,11 @@ Action ValueIterationAgent::getPolicy(const GameState &state)
 void ValueIterationAgent::solve()
 {
     double delta = INT_MAX;
+    bool d = false;
     int iteration = 0;
-    while ((delta > m_threshold) && iteration <= m_iterations)
+    while (!d && iteration <= m_iterations)
     {
+        d = true;
         iteration++; // increment iteration
 
         std::set<GameState> possStates = m_mdp.getStates(); // get all possible states to iterate through
@@ -85,13 +87,15 @@ void ValueIterationAgent::solve()
                 }
 
                 // v value is larger of current sum (for current action) or current v value
+                if (sum - valueMap[curr_state] > m_threshold)
+                    d = false;
                 v = std::max(sum, v);
             }
             policyMap[curr_state] = optimalAction;
 
             valueMap[curr_state] = maxActionValue;
 
-            delta = std::max(delta, std::abs(temp - maxActionValue));
+            // delta = std::max(delta, std::abs(temp - maxActionValue));
 
             ++state_iterator; // iterate to next state in environment
         }
