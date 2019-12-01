@@ -52,8 +52,6 @@ double QLearningAgent::getQValue(const GameState &state, const Action &action)
     {
         // * IF Q[S,A] DOES NOT EXIST
         // * SUBSTITUTE 0
-        std::cout << " Q VALUE MAP ENTRY DOES NOT EXIST FOR CURRENT STATE/ACTION" << std::endl;
-
         m_qvalue[std::make_pair(state, action)] = 0;
     }
 
@@ -63,9 +61,6 @@ double QLearningAgent::getQValue(const GameState &state, const Action &action)
 // The final policy without exploration. Used for evaluation.
 Action QLearningAgent::getPolicy(const GameState &state)
 {
-    // std::cout << "GETPOLICY() CALL" << std::endl;
-    // TODO
-
     return getMaxActionValue(state).first;
 }
 
@@ -86,7 +81,6 @@ Action QLearningAgent::getAction(const GameState &state)
         return LEFT;
 
     double probability = dist_double(gen);
-    // std::cout << "probability of random: " << probability << std::endl;
     int actionToChoose = dist_int(gen);
 
     // check if m_policy[state] does not exist (i.e. unexplored state)
@@ -95,7 +89,6 @@ Action QLearningAgent::getAction(const GameState &state)
     if (m_policy.find(state) == m_policy.end())
     {
         // if state is not in policy map
-        std::cout << "action to choose: " << actionToChoose << std::endl;
         return action;
     }
 
@@ -108,7 +101,6 @@ Action QLearningAgent::getAction(const GameState &state)
         {
             actionToChoose = dist_int(gen);
             action = possActions[actionToChoose];
-            std::cout << "action to choose in loop: " << actionToChoose << std::endl;
         }
 
         return action;
@@ -129,31 +121,9 @@ void QLearningAgent::update(const GameState &state, const Action &action, const 
     double currQValue = getQValue(state, action);
     std::pair<Action, double> nextQValue = getMaxActionValue(nextState);
 
-    // ! Q[s, a] = Q[s, a] + alpha[reward + gamma(max_a'(Q[s', a'])) - Q[s, a]]
-    // * IF BOTH Q[S,A] and Q[S', A'] EXIST
+    // * Q[s, a] = Q[s, a] + alpha[reward + gamma(max_a'(Q[s', a'])) - Q[s, a]]
+    // ? IF BOTH Q[S,A] and Q[S', A'] EXIST
     m_qvalue[std::make_pair(state, action)] = currQValue + m_alpha * (reward + (m_gamma * (nextQValue.second) - currQValue));
-
-    // * UPDATE π[STATE] TO MAXa Q[S,A]
-
-    // Action maxAction = m_policy[state];
-    // double maxQ = INT_MIN;
-
-    // std::vector<Action> possActions = m_env.getPossibleActions(state);
-    // for (Action poss : possActions)
-    // {
-    //     if (m_qvalue.find(std::make_pair(state, poss)) == m_qvalue.end())
-    //     {
-    //         // if action not in map, continue;
-    //         continue;
-    //     }
-    //     if (m_qvalue[std::make_pair(state, poss)] > maxQ)
-    //     {
-    //         maxQ = m_qvalue[std::make_pair(state, poss)];
-    //         maxAction = poss;
-    //     }
-    // }
-
-    // // m_policy[state] = maxAction; // update policy map?
 
     return;
 }
@@ -200,47 +170,6 @@ void QLearningAgent::solve()
 
 void QLearningAgent::initialize()
 {
-    // TODO initialize m_policy and m_qvalue maps
-    /* // // * implement DFS/BFS to initialize map to all possible states?
-    // std::set<GameState> visitedStates;  // set of all currently visited states
-    // std::queue<GameState> queuedStates; // queued states to search
-
-    // // std::vector<Action> possibleActionList = {LEFT, RIGHT, UP, DOWN};
-
-    // GameState state = m_env.reset();
-    // visitedStates.insert(state);
-    // queuedStates.push(state);
-
-    // while (!queuedStates.empty())
-    // {
-    //     // get current working state
-    //     GameState curr_state = queuedStates.front();
-    //     queuedStates.pop();
-    //     visitedStates.insert(curr_state);
-
-    //     // get all possible actions for current state
-    //     std::vector<Action> possActions = m_env.getPossibleActions(curr_state);
-    //     for (Action action : possActions)
-    //     {
-    //         // for each action, insert into map w/ current gamestate
-    //         m_qvalue[std::make_pair(curr_state, action)] = 0;
-
-    //         // get the resulting state and if not already in queue, add it
-    //         GameState transitionState = m_env.getNextState(curr_state, action);
-    //         if (visitedStates.find(transitionState) == visitedStates.end())
-    //             queuedStates.push(transitionState);
-    //     }
-    // }
-
-    // // * TEST INITIALIZATION CODE?
-    // std::map<std::pair<GameState, Action>, double>::iterator qValueIterator = m_qvalue.begin();
-    // while (qValueIterator != m_qvalue.end())
-    // {
-    //     std::cout << "x: " << (*qValueIterator).first.first.getLoc().x << " y: " << (*qValueIterator).first.first.getLoc().y
-    //               << " action: " << (*qValueIterator).second << " qValue: " << (*qValueIterator).second << std::endl;
-
-    //     qValueIterator++;
-    // } */
-
+    // * Q LEARNING INITIALIZES AS IT EXPLORES --> NO INITIALIZE() FUNCTION NECESSARY
     return;
 }
