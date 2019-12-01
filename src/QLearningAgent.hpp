@@ -35,11 +35,15 @@ private:
     double m_alpha;
     double m_epsilon;
 
+    std::default_random_engine rd;
+
     std::map<std::pair<GameState, Action>, double> m_qvalue;
 
     std::map<GameState, Action> m_policy;
 
     FrozenLakeEnv &m_env;
+
+    std::pair<Action, double> getMaxActionValue(const GameState &state);
 
     void update(const GameState &state, const Action &action, const GameState &nextState, double reward);
 

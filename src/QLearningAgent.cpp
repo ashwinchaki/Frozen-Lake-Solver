@@ -18,23 +18,55 @@ QLearningAgent::QLearningAgent(FrozenLakeEnv &env, double gamma, int iterations,
     solve();
 }
 
+std::pair<Action, double> QLearningAgent::getMaxActionValue(const GameState &state)
+{
+    double maxQ = INT_MIN;
+    Action maxAction = LEFT;
+
+    std::vector<Action> possActions = m_env.getPossibleActions(state);
+    if (m_env.isTerminal(state))
+        return std::make_pair(LEFT, 0);
+    for (Action poss : possActions)
+    {
+        if (getQValue(state, poss) > maxQ)
+        {
+            maxAction = poss;
+            maxQ = getQValue(state, poss);
+        }
+    }
+    return std::make_pair(maxAction, maxQ);
+}
+
 double QLearningAgent::getValue(const GameState &state)
 {
-    // TODO
-    return 0.0;
+    return getMaxActionValue(state).second;
 }
 
 double QLearningAgent::getQValue(const GameState &state, const Action &action)
 {
-    // TODO
+    // * IF TERMINAL NODE
+    if (m_env.isTerminal(state))
+        return 0.0;
+
+    if (m_qvalue.find(std::make_pair(state, action)) == m_qvalue.end())
+    {
+        // * IF Q[S,A] DOES NOT EXIST
+        // * SUBSTITUTE 0
+        std::cout << " Q VALUE MAP ENTRY DOES NOT EXIST FOR CURRENT STATE/ACTION" << std::endl;
+
+        m_qvalue[std::make_pair(state, action)] = 0;
+    }
+
     return m_qvalue[std::make_pair(state, action)];
 }
 
 // The final policy without exploration. Used for evaluation.
 Action QLearningAgent::getPolicy(const GameState &state)
 {
+    // std::cout << "GETPOLICY() CALL" << std::endl;
     // TODO
-    return m_policy[state];
+
+    return getMaxActionValue(state).first;
 }
 
 // you should use getAction in solve instead of getPolicy and implement your exploration strategy here.
@@ -44,22 +76,26 @@ Action QLearningAgent::getAction(const GameState &state)
 
     // TODO: implement random action selection
 
-    std::default_random_engine rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dist_double(0.00, 1.00);
+    std::uniform_real_distribution<double> dist_double(0.00, 1.00);
 
     std::vector<Action> possActions = m_env.getPossibleActions(state);
-    std::uniform_int_distribution<> dist_int(0, (int)(possActions.size() - 1));
+    std::uniform_int_distribution<int> dist_int(0, possActions.size() - 1);
+
+    if (possActions.size() == 0)
+        return LEFT;
 
     double probability = dist_double(gen);
-    std::cout << "probability of random: " << probability << std::endl;
+    // std::cout << "probability of random: " << probability << std::endl;
+    int actionToChoose = dist_int(gen);
 
     // check if m_policy[state] does not exist (i.e. unexplored state)
-    Action action = possActions[dist_int(gen)];
+    Action action = possActions[actionToChoose];
 
     if (m_policy.find(state) == m_policy.end())
     {
         // if state is not in policy map
+        std::cout << "action to choose: " << actionToChoose << std::endl;
         return action;
     }
 
@@ -67,15 +103,20 @@ Action QLearningAgent::getAction(const GameState &state)
     {
         // give random action
         // if action is current policy, generate new action
-        while (action == m_policy[state])
-            action = possActions[dist_int(gen)];
+        std::cout << "action to choose before loop: " << actionToChoose << std::endl;
+        while (action == getMaxActionValue(state).first)
+        {
+            actionToChoose = dist_int(gen);
+            action = possActions[actionToChoose];
+            std::cout << "action to choose in loop: " << actionToChoose << std::endl;
+        }
 
         return action;
     }
 
     else // if probability > m_epsilon, pick current best option (m_policy)
     {
-        return m_policy[state];
+        return getPolicy(state);
     }
 
     return LEFT; // control will never reach this point
@@ -85,57 +126,34 @@ void QLearningAgent::update(const GameState &state, const Action &action, const 
 {
     // TODO
 
-    if (m_qvalue.find(std::make_pair(state, action)) == m_qvalue.end())
-    {
-        // * IF Q[S,A] DOES NOT EXIST
-        // * SUBSTITUTE 0
-        m_qvalue[std::make_pair(state, action)] = 0;
-    }
-
-    // * IF π[S] DOES NOT EXIST, INITIALIZE WITH CURRENT ACTION
-    if (m_policy.find(state) == m_policy.end())
-        m_policy[state] = action;
-
-    // * IF π[S'] DOES NOT EXIST, INITIALIZE TO FIRST POSSIBLE ACTION (OR 0 FOR NO POSSIBLE ACTIONS)
-    // * AND INITIALIZE Q[S', π[S']] = 0 AND USE THAT VALUE
-    if (m_policy.find(nextState) == m_policy.end())
-    {
-        std::vector<Action> possActions = m_env.getPossibleActions(nextState);
-        if (possActions.size() == 0)
-            m_policy[nextState] = LEFT;
-        else
-            m_policy[nextState] = possActions[0];
-    }
-
-    // * INITIALIZE Q[S', π[S']] TO 0 IF IT DOES NOT EXIST
-    if (m_qvalue.find(std::make_pair(nextState, m_policy[nextState])) == m_qvalue.end())
-        m_qvalue[std::make_pair(nextState, m_policy[nextState])] = 0;
+    double currQValue = getQValue(state, action);
+    std::pair<Action, double> nextQValue = getMaxActionValue(nextState);
 
     // ! Q[s, a] = Q[s, a] + alpha[reward + gamma(max_a'(Q[s', a'])) - Q[s, a]]
     // * IF BOTH Q[S,A] and Q[S', A'] EXIST
-    m_qvalue[std::make_pair(state, action)] = m_qvalue[std::make_pair(state, action)] + m_alpha * (reward + m_gamma * (m_qvalue[std::make_pair(state, m_policy[nextState])]) - m_qvalue[std::make_pair(state, action)]);
+    m_qvalue[std::make_pair(state, action)] = currQValue + m_alpha * (reward + (m_gamma * (nextQValue.second) - currQValue));
 
     // * UPDATE π[STATE] TO MAXa Q[S,A]
 
-    Action maxAction = m_policy[state];
-    double maxQ = INT_MIN;
+    // Action maxAction = m_policy[state];
+    // double maxQ = INT_MIN;
 
-    std::vector<Action> possActions = m_env.getPossibleActions(state);
-    for (Action poss : possActions)
-    {
-        if (m_qvalue.find(std::make_pair(state, poss)) == m_qvalue.end())
-        {
-            // if action not in map, continue;
-            continue;
-        }
-        if (m_qvalue[std::make_pair(state, poss)] > maxQ)
-        {
-            maxQ = m_qvalue[std::make_pair(state, poss)];
-            maxAction = poss;
-        }
-    }
+    // std::vector<Action> possActions = m_env.getPossibleActions(state);
+    // for (Action poss : possActions)
+    // {
+    //     if (m_qvalue.find(std::make_pair(state, poss)) == m_qvalue.end())
+    //     {
+    //         // if action not in map, continue;
+    //         continue;
+    //     }
+    //     if (m_qvalue[std::make_pair(state, poss)] > maxQ)
+    //     {
+    //         maxQ = m_qvalue[std::make_pair(state, poss)];
+    //         maxAction = poss;
+    //     }
+    // }
 
-    m_policy[state] = maxAction; // update policy map?
+    // // m_policy[state] = maxAction; // update policy map?
 
     return;
 }
@@ -159,6 +177,13 @@ void QLearningAgent::solve()
             GameState nextState = m_env.getNextState(state, action);
             double reward = m_env.getReward(state, action, nextState);
 
+            // * DEBUG STATEMENTS
+            // std::cout << "EPISODE: " << numSteps << std::endl;
+            // std::cout << "state: " << state.getLoc().x << " " << state.getLoc().y
+            //           << " action: " << action
+            //           << " nextState: " << nextState.getLoc().x << " " << nextState.getLoc().y
+            //           << " reward: " << reward << std::endl;
+
             update(state, action, nextState, reward);
             state = nextState;
             numSteps += 1;
@@ -166,7 +191,7 @@ void QLearningAgent::solve()
                 break; // avoid infinite loop in some cases.
         }
         // evaluate for 100 episodes using the current optimal policy. You can't change this line.
-        double episodeReward = m_env.runGame(*this, 100, m_gamma, false).first;
+        double episodeReward = m_env.runGame(*this, 1000, m_gamma, false).first;
         std::cout << "Evaluating episode reward at learning iteration " << i << " is " << episodeReward << std::endl;
         outFile << i << "," << episodeReward << std::endl;
     }
