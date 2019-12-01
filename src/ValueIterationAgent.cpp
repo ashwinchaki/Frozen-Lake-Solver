@@ -35,7 +35,6 @@ void ValueIterationAgent::solve()
     int iteration = 0;
     while ((delta > m_threshold) && iteration <= m_iterations)
     {
-        delta = INT_MIN;
         iteration++; // increment iteration
 
         std::set<GameState> possStates = m_mdp.getStates(); // get all possible states to iterate through
