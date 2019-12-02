@@ -67,10 +67,6 @@ Action QLearningAgent::getPolicy(const GameState &state)
 // you should use getAction in solve instead of getPolicy and implement your exploration strategy here.
 Action QLearningAgent::getAction(const GameState &state)
 {
-    // TODO implement exploration
-
-    // TODO: implement random action selection
-
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> dist_double(0.00, 1.00);
 
@@ -86,11 +82,11 @@ Action QLearningAgent::getAction(const GameState &state)
     // check if m_policy[state] does not exist (i.e. unexplored state)
     Action action = possActions[actionToChoose];
 
-    if (m_policy.find(state) == m_policy.end())
-    {
-        // if state is not in policy map
-        return action;
-    }
+    // if (m_policy.find(state) == m_policy.end())
+    // {
+    //     // if state is not in policy map
+    //     return action;
+    // }
 
     if (probability < m_epsilon)
     {
@@ -144,6 +140,10 @@ void QLearningAgent::solve()
         while (!m_env.isTerminal(state))
         {
             Action action = getAction(state); // use instead of getPolicy?
+            if (m_nvalue[std::make_pair(state, action)] == 0)
+            {
+                std::cout << "state/action not in n value map" << std::endl;
+            }
             GameState nextState = m_env.getNextState(state, action);
             double reward = m_env.getReward(state, action, nextState);
 
