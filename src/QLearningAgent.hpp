@@ -41,6 +41,8 @@ private:
 
     std::map<GameState, Action> m_policy;
 
+    std::map<std::pair<GameState, Action>, int> m_nvalue;
+
     FrozenLakeEnv &m_env;
 
     std::pair<Action, double> getMaxActionValue(const GameState &state);
