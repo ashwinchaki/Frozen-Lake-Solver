@@ -69,30 +69,10 @@ Action QLearningAgent::getAction(const GameState &state)
 {
 
     // ! COUNTING BASED EXPLORATION
-    // std::vector<Action> possActions = m_env.getPossibleActions(state);
-    // Action minUsedAction;
-    // int minUsedCount = -1;
-    // for (Action poss : possActions)
-    // {
-
-    //     if (m_nvalue.find(std::make_pair(state, poss)) == m_nvalue.end())
-    //     {
-    //         m_nvalue[std::make_pair(state, poss)] = 1;
-    //         return poss;
-    //     }
-
-    //     int count = m_nvalue[std::make_pair(state, poss)];
-    //     if (count < minUsedCount)
-    //     {
-    //         minUsedCount = count;
-    //         minUsedAction = poss;
-    //     }
-    // }
-    // return minUsedAction;
-    return getPolicy(state);
+    // return getPolicy(state);
 
     // ! EPSILON-GREEDY ACTION SELECTION
-    /* std::mt19937 gen(rd());
+    std::mt19937 gen(rd());
     std::uniform_real_distribution<double> dist_double(0.00, 1.00);
 
     std::vector<Action> possActions = m_env.getPossibleActions(state);
@@ -123,16 +103,16 @@ Action QLearningAgent::getAction(const GameState &state)
         return getPolicy(state);
     }
 
-    return LEFT; // control will never reach this point */
+    return LEFT; // control will never reach this point
 }
 
 void QLearningAgent::update(const GameState &state, const Action &action, const GameState &nextState, double reward)
 {
-    // * COUNTING BASED EXPLORATION
-    // * q′(s,a) = q(s,a)+βN(s,a)^(-1/2)
     double currQValue = getQValue(state, action);
 
-    m_qvalue[std::make_pair(state, action)] = m_qvalue[std::make_pair(state, action)] + (m_epsilon * pow(m_nvalue[std::make_pair(state, action)], -1 / 2));
+    // * COUNTING BASED EXPLORATION
+    // * q′(s,a) = q(s,a)+βN(s,a)^(-1/2)
+    // m_qvalue[std::make_pair(state, action)] = m_qvalue[std::make_pair(state, action)] + (m_epsilon * pow(m_nvalue[std::make_pair(state, action)], -0.5));
 
     std::pair<Action, double> nextQValue = getMaxActionValue(nextState);
 
@@ -170,7 +150,10 @@ void QLearningAgent::solve()
             //           << " reward: " << reward << std::endl;
 
             update(state, action, nextState, reward);
-            m_nvalue[std::make_pair(state, action)]++; // increment N(s, a)
+
+            // * COUNTING BASED EXPLORATION N(s, a) INCREMENT
+            // m_nvalue[std::make_pair(state, action)]++; // increment N(s, a)
+
             state = nextState;
             numSteps += 1;
             if (numSteps >= maxEpisodeSteps)
