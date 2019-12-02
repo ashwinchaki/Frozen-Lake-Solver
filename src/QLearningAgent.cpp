@@ -68,26 +68,28 @@ Action QLearningAgent::getPolicy(const GameState &state)
 Action QLearningAgent::getAction(const GameState &state)
 {
 
-    std::vector<Action> possActions = m_env.getPossibleActions(state);
-    Action minUsedAction;
-    int minUsedCount = -1;
-    for (Action poss : possActions)
-    {
+    // ! COUNTING BASED EXPLORATION
+    // std::vector<Action> possActions = m_env.getPossibleActions(state);
+    // Action minUsedAction;
+    // int minUsedCount = -1;
+    // for (Action poss : possActions)
+    // {
 
-        if (m_nvalue.find(std::make_pair(state, poss)) == m_nvalue.end())
-        {
-            m_nvalue[std::make_pair(state, poss)] = 1;
-            return poss;
-        }
+    //     if (m_nvalue.find(std::make_pair(state, poss)) == m_nvalue.end())
+    //     {
+    //         m_nvalue[std::make_pair(state, poss)] = 1;
+    //         return poss;
+    //     }
 
-        int count = m_nvalue[std::make_pair(state, poss)];
-        if (count < minUsedCount)
-        {
-            minUsedCount = count;
-            minUsedAction = poss;
-        }
-    }
-    return minUsedAction;
+    //     int count = m_nvalue[std::make_pair(state, poss)];
+    //     if (count < minUsedCount)
+    //     {
+    //         minUsedCount = count;
+    //         minUsedAction = poss;
+    //     }
+    // }
+    // return minUsedAction;
+    return getPolicy(state);
 
     // ! EPSILON-GREEDY ACTION SELECTION
     /* std::mt19937 gen(rd());
@@ -102,19 +104,10 @@ Action QLearningAgent::getAction(const GameState &state)
     double probability = dist_double(gen);
     int actionToChoose = dist_int(gen);
 
-    // check if m_policy[state] does not exist (i.e. unexplored state)
     Action action = possActions[actionToChoose];
-
-    // if (m_policy.find(state) == m_policy.end())
-    // {
-    //     // if state is not in policy map
-    //     return action;
-    // }
 
     if (probability < m_epsilon)
     {
-        // give random action
-        // if action is current policy, generate new action
         std::cout << "action to choose before loop: " << actionToChoose << std::endl;
         while (action == getMaxActionValue(state).first)
         {
@@ -137,14 +130,15 @@ void QLearningAgent::update(const GameState &state, const Action &action, const 
 {
     // * COUNTING BASED EXPLORATION
     // * q′(s,a) = q(s,a)+βN(s,a)^(-1/2)
+    double currQValue = getQValue(state, action);
+
     m_qvalue[std::make_pair(state, action)] = m_qvalue[std::make_pair(state, action)] + (m_epsilon * pow(m_nvalue[std::make_pair(state, action)], -1 / 2));
 
-    double currQValue = getQValue(state, action);
     std::pair<Action, double> nextQValue = getMaxActionValue(nextState);
 
     // * Q[s, a] = Q[s, a] + alpha[reward + gamma(max_a'(Q[s', a'])) - Q[s, a]]
     // ? IF BOTH Q[S,A] and Q[S', A'] EXIST
-    m_qvalue[std::make_pair(state, action)] = currQValue + m_alpha * (reward + (m_gamma * (nextQValue.second) - currQValue));
+    m_qvalue[std::make_pair(state, action)] = currQValue + m_alpha * (reward + (m_gamma * (nextQValue.second) - m_qvalue[std::make_pair(state, action)]));
 
     return;
 }
